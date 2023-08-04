@@ -2,6 +2,7 @@
 import os, pathlib, struct, sys
 
 from blocks import *
+import magicopen
 
 """
 Build the font binaries to be flashed. The binaries are output to the build/
@@ -57,7 +58,7 @@ def write_blobs(chars, charset, *, singlefile, doublefile, charmapfile):
             single_idx = single_idx + 1
             singlefile.write(char.data)
         elif char.type == 'double':
-            if double_idx >= 32768:
+            if double_idx >= 49151:
                 raise Exception("Too many double-wides!")
             charmap[char.code] = double_idx + 16384
             double_idx = double_idx + 1
@@ -78,7 +79,7 @@ def main():
         print("usage: build.py fontfile.hex [fontfile.hex ...]")
         sys.exit(1)
     for fn in sys.argv[1:]:
-        f = open(fn, "r")
+        f = magicopen.magic_open(fn, "rt")
         read_hex(chars, CHARS_FULL, f)
 
     builddir = pathlib.Path("build")
