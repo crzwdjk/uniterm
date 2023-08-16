@@ -1,6 +1,7 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 import enum
+from signatures import *
 
 __all__ = ["CursorShape", "CursorControlsSig", "Cursor"]
 class CursorShape(enum.Enum):
@@ -23,13 +24,11 @@ class Cursor(Elaboratable):
     def __init__(self, timings):
         self.signature = Signature({
             "controls": In(CursorControlsSig(rows=timings.rows, cols=timings.cols)),
-            "hctr": In(timings.hctr_shape()),
-            "vctr": In(timings.vctr_shape()),
+            "pos": In(VideoPosSig(timings)),
             "output": Out(1),
         })
         self.__dict__.update(self.signature.members.create())
         self.blinkctrval = Const(int(timings.pclk * 1e6 * 0.5))
-        print("blink counter", self.blinkctrval)
 
     def elaborate(self, platform):
         m = Module()
@@ -39,10 +38,10 @@ class Cursor(Elaboratable):
         ctr = Signal(32)
         cursor_on = Signal()
 
-        row_pix = self.vctr[0:4]
-        col_pix = self.hctr[0:3]
-        m.d.comb += col.eq(self.hctr >> 3)
-        m.d.comb += row.eq(self.vctr >> 4)
+        row_pix = self.pos.vctr[0:4]
+        col_pix = self.pos.hctr[0:3]
+        m.d.comb += col.eq(self.pos.hctr >> 3)
+        m.d.comb += row.eq(self.pos.vctr >> 4)
 
         # counter for the blink
         with m.If(ctr == self.blinkctrval):

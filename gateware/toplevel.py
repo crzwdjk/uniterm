@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib.wiring import *
 import icepll
 from vgasync import *
 from cursor import *
@@ -22,9 +23,8 @@ class Toplevel(Elaboratable):
         bgcolor = [23, 20, 31]
         fgcolor = [31, 31, 31]
         color = [Mux(cursor.output, c[0], c[1]) for c in zip(fgcolor, bgcolor)]
-        m.d.comb += cursor.controls.shape.eq(CursorShape.UNDERLINE)
-        m.d.comb += cursor.hctr.eq(vgs.hctr)
-        m.d.comb += cursor.vctr.eq(vgs.vctr)
+        m.d.comb += cursor.controls.shape.eq(CursorShape.BOX)
+        connect(m, cursor.pos, vgs.pos)
 
         output = platform.request("vga")
         m.d.comb += [

@@ -1,5 +1,6 @@
 from amaranth import *
 from amaranth.lib.wiring import *
+from signatures import *
 
 __all__ = ["VGASync"]
 
@@ -17,8 +18,7 @@ class VGASync(Elaboratable):
             "hs": Out(1),
             "vs": Out(1),
             "active": Out(1),
-            "hctr": Out(timings.hctr_shape()),
-            "vctr": Out(timings.vctr_shape()),
+            "pos": Out(VideoPosSig(timings)),
         }).freeze()
         self.__dict__.update(self.signature.members.create())
 
@@ -27,11 +27,11 @@ class VGASync(Elaboratable):
 
         hactive = Signal(reset = 1)
         vactive = Signal(reset = 1)
-        hctr = Signal.like(self.hctr)
-        vctr = Signal.like(self.vctr)
+        hctr = Signal.like(self.pos.hctr)
+        vctr = Signal.like(self.pos.vctr)
         m.d.sync += [
-            self.hctr.eq(hctr),
-            self.vctr.eq(vctr),
+            self.pos.hctr.eq(hctr),
+            self.pos.vctr.eq(vctr),
         ]
         with m.If(hctr == self.timings.htotal - 1):
             m.d.sync += hctr.eq(0)
