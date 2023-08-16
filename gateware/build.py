@@ -23,6 +23,10 @@ class PlatformData():
                     attrs=Attrs(IO_STANDARD="SB_LVCMOS")),
                 PS2Resource(0, clk="19", dat="13",
                     attrs=Attrs(IO_STANDARD="SB_LVCMOS")),
+                Resource("pclk", 0, Pins("19", dir="o", invert=True),
+                    Attrs(IO_STANDARD="SB_LVCMOS")),
+                Resource("den", 0, Pins("13", dir="o"),
+                    Attrs(IO_STANDARD="SB_LVCMOS")),
             ])
             self.clkresource = "clk12e"
         elif name == "tinyfpga":

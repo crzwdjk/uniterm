@@ -1,5 +1,5 @@
 from amaranth import *
-import icepll
+import icepll, vgasync
 
 class Toplevel(Elaboratable):
     """ The top level of the terminal, everything goes under here. """
@@ -11,19 +11,28 @@ class Toplevel(Elaboratable):
         m = Module()
 
         f_in = platform.lookup(self.pdata.clkresource).clock.frequency
-        m.submodules += icepll.ICEPLL(f_in, self.timings.pclk * 1e6,
+        m.submodules.pll = icepll.ICEPLL(f_in, self.timings.pclk * 1e6,
                                       self.pdata.clkresource)
 
-        # some debug code with an RGB LED.
-        led = platform.request("rgb_led")
-        clk_freq = platform.default_clk_frequency
-        timer = Signal(range(int(clk_freq//2)), reset=int(clk_freq//2) - 1)
-        with m.If(timer == 0):
-            m.d.sync += timer.eq(timer.reset)
-            m.d.sync += led.g.eq(~led.g)
-        with m.Else():
-            m.d.sync += timer.eq(timer - 1)
+        m.submodules.vgasync = vgs = vgasync.VGASync(self.timings)
 
+        output = platform.request("vga")
+        m.d.comb += [
+            output.hs.eq(vgs.hs),
+            output.vs.eq(vgs.vs),
+            output.r.eq(Mux(vgs.active, 23, 0)),
+            output.g.eq(Mux(vgs.active, 20, 0)),
+            output.b.eq(Mux(vgs.active, 31, 0)),
+        ]
 
+        # Not all platforms need the pclk/den outputs, so it's okay if the
+        # request fails.
+        try:
+            pclk = platform.request("pclk")
+            m.d.comb += pclk.eq(ClockSignal("sync"))
+            den = platform.request("den")
+            m.d.comb += den.eq(vgs.active)
+        except:
+            pass
 
         return m
