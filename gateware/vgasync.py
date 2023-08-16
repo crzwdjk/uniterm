@@ -1,6 +1,8 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 
+__all__ = ["VGASync"]
+
 class VGASync(Elaboratable):
     """
     VGA sync generator, with configurable timings.
@@ -15,11 +17,10 @@ class VGASync(Elaboratable):
             "hs": Out(1),
             "vs": Out(1),
             "active": Out(1),
-            "hctr": Out(range(-timings.hback, timings.hsync_end)),
-            "vctr": Out(range(-timings.vback, timings.vsync_end)),
+            "hctr": Out(timings.hctr_shape()),
+            "vctr": Out(timings.vctr_shape()),
         }).freeze()
-        for name, value in self.signature.members.create().items():
-            setattr(self, name, value)
+        self.__dict__.update(self.signature.members.create())
 
     def elaborate(self, platform):
         m = Module()

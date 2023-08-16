@@ -1,3 +1,7 @@
+from amaranth import *
+
+CHARWIDTH = 8
+CHARHEIGHT = 16
 
 class Timings:
     def __init__(self, pclk, *, hactive, vactive, hfront, hsync, hback, vfront, vsync, vback):
@@ -19,6 +23,14 @@ class Timings:
         self.hsync_end = hactive + hfront + hsync
         self.vsync_start = vactive + vfront
         self.vsync_end = vactive + vfront + vsync
+        self.cols = hactive // CHARWIDTH
+        self.rows = vactive // CHARHEIGHT
+
+    def hctr_shape(self):
+        return Shape.cast(range(-self.hback, self.hsync_end))
+
+    def vctr_shape(self):
+        return Shape.cast(range(-self.vback, self.vsync_end))
 
 TIMINGS={
     "640x480": Timings(
