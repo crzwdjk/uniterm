@@ -56,7 +56,6 @@ def parse_bdf(f, of, *, height=16, width=8):
                 char.output(of)
                 state = ParseState.NONE
             else:
-                # TODO: radical simplification!!!
                 char.data += line.rstrip()
 
         elif state == ParseState.SKIPCHAR:
