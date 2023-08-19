@@ -80,7 +80,7 @@ def main():
         sys.exit(1)
     for fn in sys.argv[1:]:
         f = magicopen.magic_open(fn, "rt")
-        read_hex(chars, CHARS_FULL, f)
+        read_hex(chars, set(CHARS_FULL), f)
 
     builddir = pathlib.Path("build")
     if not builddir.exists():
