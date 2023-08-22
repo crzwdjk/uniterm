@@ -18,15 +18,15 @@ class PlatformData():
                 Resource("clk12e", 0, Pins("35", dir="i"), Clock(12e6),
                     Attrs(IO_STANDARD="SB_LVCMOS")),
                 VGAResource(0, r="2 46 47 45 48", g="3 4 44 6 9", b="28 38 42 36 43",
-                    hs="11", vs="18", attrs=Attrs(IO_STANDARD="SB_LVCMOS")),
+                    hs="11", vs="18", attrs=Attrs(IO_STANDARD="SB_LVCMOS33")),
                 UARTResource(0, rx="34", tx="37",
-                    attrs=Attrs(IO_STANDARD="SB_LVCMOS")),
+                    attrs=Attrs(IO_STANDARD="SB_LVCMOS33")),
                 PS2Resource(0, clk="19", dat="13",
-                    attrs=Attrs(IO_STANDARD="SB_LVCMOS")),
+                    attrs=Attrs(IO_STANDARD="SB_LVCMOS33")),
                 Resource("pclk", 0, Pins("19", dir="o", invert=True),
-                    Attrs(IO_STANDARD="SB_LVCMOS")),
+                    Attrs(IO_STANDARD="SB_LVCMOS33")),
                 Resource("den", 0, Pins("13", dir="o"),
-                    Attrs(IO_STANDARD="SB_LVCMOS")),
+                    Attrs(IO_STANDARD="SB_LVCMOS33")),
             ])
             self.clkresource = "clk12e"
         elif name == "tinyfpga":
