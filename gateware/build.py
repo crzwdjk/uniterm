@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import argparse
+import argparse, shutil
 from amaranth.build import *
 from amaranth_boards.tinyfpga_bx import *
 from amaranth_boards.upduino_v3 import *
 from amaranth_boards.resources import *
 
-import toplevel
 from vgatimings import TIMINGS
 
 class PlatformData():
@@ -68,6 +67,13 @@ def main():
     timings = TIMINGS[options.resolution]
     pdata = PlatformData(options.platform)
 
+    if options.platform == "upduino":
+        flashmapfile = "../font/build/flash_map_full.py"
+    else:
+        flashmapfile = "../font/build/flash_map_core.py"
+    # copy file to build/
+    shutil.copy(flashmapfile, "build/flash_map.py")
+    import toplevel
     pdata.platform.build(toplevel.Toplevel(pdata, timings),
                          do_program=options.flash)
 
