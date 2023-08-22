@@ -7,3 +7,10 @@ class VideoPosSig(Signature):
             "vctr": Out(timings.vctr_shape()),
         })
 
+class MemWriterSig(Signature):
+    def __init__(self, *, addrbits, databits):
+        super().__init__({
+            "addr": Out(addrbits),
+            "en": Out(1),
+            "data": Out(databits),
+        })
