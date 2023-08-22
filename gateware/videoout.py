@@ -28,7 +28,7 @@ class VideoOut(Elaboratable):
         ]
 
         active1 = Signal()
-        fetched_bit = self.rowbuf_data.bit_select((vgs.pos.hctr[0:3] - 1)[0:3], 1),
+        fetched_bit = self.rowbuf_data.bit_select((vgs.pos.hctr[0:3] - 1)[0:3], 1)
         m.d.sync += active1.eq(vgs.active)
 
         # create the cursor and override the shape for now.
