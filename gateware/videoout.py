@@ -28,7 +28,15 @@ class VideoOut(Elaboratable):
         ]
 
         active1 = Signal()
-        fetched_bit = self.rowbuf_data.bit_select((vgs.pos.hctr[0:3] - 1)[0:3], 1)
+        fetched_byte = Signal(7)
+        fetched_bit = Signal()
+        with m.If(vgs.pos.hctr[0:3] == 1):
+            m.d.sync += fetched_byte.eq(self.rowbuf_data[1:8])
+            m.d.comb += fetched_bit.eq(self.rowbuf_data[0])
+        with m.Else():
+            m.d.sync += fetched_byte.eq(fetched_byte[1:7])
+            m.d.comb += fetched_bit.eq(fetched_byte[0])
+
         m.d.sync += active1.eq(vgs.active)
 
         # create the cursor and override the shape for now.
@@ -44,22 +52,29 @@ class VideoOut(Elaboratable):
         color = [Mux(cursorval ^ fetched_bit, c[0], c[1]) for c in zip(fgcolor, bgcolor)]
         connect(m, cursor.pos, vgs.pos)
 
-        output = platform.request("vga")
+        output = platform.request("vga", xdr={"r": 1, "g": 1, "b": 1, "hs": 1, "vs": 1})
+        m.d.comb += [
+                output.r.o_clk.eq(ClockSignal("sync")),
+                output.g.o_clk.eq(ClockSignal("sync")),
+                output.b.o_clk.eq(ClockSignal("sync")),
+                output.hs.o_clk.eq(ClockSignal("sync")),
+                output.vs.o_clk.eq(ClockSignal("sync")),
+        ]
         # delay hs, vs by 1 clock and use the delayed active signal too
         m.d.sync += [
-            output.hs.eq(vgs.hs),
-            output.vs.eq(vgs.vs),
+            output.hs.o.eq(vgs.hs),
+            output.vs.o.eq(vgs.vs),
         ]
         m.d.comb += [
-            output.r.eq(Mux(active1, color[0], 0)),
-            output.g.eq(Mux(active1, color[1], 0)),
-            output.b.eq(Mux(active1, color[2], 0)),
+            output.r.o.eq(Mux(active1, color[0], 0)),
+            output.g.o.eq(Mux(active1, color[1], 0)),
+            output.b.o.eq(Mux(active1, color[2], 0)),
         ]
 
         # Not all platforms need the pclk/den outputs, so it's okay if the request fails.
         try:
             pclk = platform.request("pclk")
-            m.d.comb += pclk.eq(~ClockSignal("sync"))
+            m.d.comb += pclk.eq(ClockSignal("sync"))
             den = platform.request("den")
             m.d.sync += den.eq(vgs.active)
         except:
