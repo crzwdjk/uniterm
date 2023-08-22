@@ -28,7 +28,7 @@ def adjust_block(start, end):
 class BlockAllocator():
     def __init__(self, start, end):
         self.blocks = adjust_block(start, end) 
-        self.block.sort(key = lambda x: x[1])
+        self.blocks.sort(key = lambda x: x[1])
 
     def allocate(self, size):
         # blocks are sorted smallest-first
