@@ -133,5 +133,6 @@ class ICEPLL(Elaboratable):
                 o_LOCK = lock,
             )
         m.submodules += ResetSynchronizer(~lock, domain = self.outdomain)
+        platform.add_clock_constraint(cd_sync.clk, self.params.f_out)
 
         return m
