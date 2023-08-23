@@ -33,8 +33,8 @@ class VGASync(Elaboratable):
             self.pos.hctr.eq(hctr),
             self.pos.vctr.eq(vctr),
         ]
-        with m.If(hctr == self.timings.htotal - 1):
-            m.d.sync += hctr.eq(0)
+        with m.If(hctr == self.timings.hsync_end - 1):
+            m.d.sync += hctr.eq(-self.timings.hback)
             with m.If(vctr == self.timings.vsync_end - 1):
                 m.d.sync += vctr.eq(-self.timings.vback)
                 m.d.sync += self.vs.eq(0)
@@ -49,7 +49,7 @@ class VGASync(Elaboratable):
             m.d.sync += hactive.eq(0)
         with m.Elif(hctr == self.timings.hsync_start):
             m.d.sync += self.hs.eq(1)
-        with m.Elif(hctr == self.timings.hsync_end):
+        with m.Elif(hctr == -self.timings.hback):
             m.d.sync += self.hs.eq(0)
 
         with m.If(vctr == 0):
