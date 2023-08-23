@@ -1,6 +1,6 @@
 from amaranth import *
 from amaranth.lib.wiring import *
-import icepll, rowfiller, videoout
+import glyphbuffer, icepll, rowfiller, videoout
 from flashreader import *
 # XXX: test only
 from rowbuftest import *
@@ -34,16 +34,15 @@ class Toplevel(Elaboratable):
         connect(m, rowfill.flash, flashrd)
         row_to_fill = Signal(range(self.timings.rows))
 
-        glyphbuf = Memory(width = 16, depth = 3000, init = [x for x in range(3000)])
-        m.submodules.gbuf_read = gbuf_read = glyphbuf.read_port(transparent = False)
+        m.submodules.glyphbuf = glyphbuf = glyphbuffer.GlyphBuffer(self.timings)
+        m.submodules.chargen = chargen = glyphbuffer.CharGen(self.timings)
+        connect(m, glyphbuf.write, chargen)
+        connect(m, glyphbuf.read, rowfill.gbuf_rd)
 
         m.d.sync += [
             row_to_fill.eq((out.pos.vctr >> 4) + 1),
         ]
         m.d.comb += [
-            rowfill.gbuf_data.eq(gbuf_read.data),
-            gbuf_read.addr.eq(row_to_fill * self.timings.cols + rowfill.gbuf_col),
-            gbuf_read.en.eq(rowfill.gbuf_en),
             rowfill.char_row.eq(row_to_fill),
             rowfill.start_fill.eq((row_to_fill >= 0) &
                                   (out.pos.vctr[0:4] == 0) &
