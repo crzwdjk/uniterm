@@ -21,7 +21,7 @@ class VideoOut(Elaboratable):
 
         # Create the VGA sync module and wire up its outputs to the rowbuf addr/en
         m.submodules.vgasync = vgs = VGASync(self.timings)
-        connect(m, transpose(self.pos), vgs.pos)
+        connect(m, flipped(self.pos), vgs.pos)
         m.d.comb += [
             self.rowbuf_addr.eq(vgs.pos.vctr[0:5] * self.timings.cols + vgs.pos.hctr[3:]),
             self.rowbuf_en.eq(vgs.active),
@@ -41,7 +41,7 @@ class VideoOut(Elaboratable):
 
         # create the cursor and override the shape for now.
         m.submodules.cursor = cursor = Cursor(self.timings)
-        connect(m, self.cursor, transpose(cursor.controls))
+        connect(m, self.cursor, flipped(cursor.controls))
         m.d.comb += cursor.controls.shape.eq(CursorShape.BOX)
         cursorval = Signal()
         m.d.sync += cursorval.eq(cursor.output)
