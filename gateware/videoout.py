@@ -8,7 +8,7 @@ class VideoOut(Elaboratable):
     def __init__(self, timings):
         self.timings = timings
         self.signature = Signature({
-            "pos": Out(VideoPosSig(timings)),
+            "pos": Out(videoPosSig(timings)),
             "cursor": In(CursorControlsSig(rows=timings.rows, cols=timings.cols)),
             "rowbuf_addr": Out(range(timings.cols * 16 * 2)),
             "rowbuf_en": Out(1),

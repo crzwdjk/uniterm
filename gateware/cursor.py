@@ -24,7 +24,7 @@ class Cursor(Elaboratable):
     def __init__(self, timings):
         self.signature = Signature({
             "controls": In(CursorControlsSig(rows=timings.rows, cols=timings.cols)),
-            "pos": In(VideoPosSig(timings)),
+            "pos": In(videoPosSig(timings)),
             "output": Out(1),
         })
         self.__dict__.update(self.signature.members.create())

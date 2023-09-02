@@ -15,7 +15,7 @@ class RowFiller(Elaboratable):
     def __init__(self, timings):
         self.rowbuf_chars = timings.cols
         self.signature = Signature({
-            "rowbuf_wr": Out(MemWriterSig(addrbits = range(timings.cols * 32), databits = 8)),
+            "rowbuf_wr": Out(memWriterSig(addrbits = range(timings.cols * 32), databits = 8)),
             "gbuf_rd": Out(Signature({
                 "row": Out(range(timings.rows)),
                 "col": Out(range(timings.cols)),

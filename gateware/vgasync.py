@@ -18,7 +18,7 @@ class VGASync(Elaboratable):
             "hs": Out(1),
             "vs": Out(1),
             "active": Out(1),
-            "pos": Out(VideoPosSig(timings)),
+            "pos": Out(videoPosSig(timings)),
         }).freeze()
         self.__dict__.update(self.signature.members.create())
 
