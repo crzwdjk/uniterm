@@ -18,6 +18,7 @@ class GlyphBuffer(Elaboratable):
                 "data": In(16),
                 "ack": Out(1),
             })),
+            "scroll_offset": In(range(timings.cols)),
         })
         self.__dict__.update(self.signature.members.create())
 
@@ -28,6 +29,11 @@ class GlyphBuffer(Elaboratable):
         # SPRAM.
         mem_dataout = Signal(16, reset = 0)
         memsize = (1 << self.read.row.width) * (1 << self.read.col.width)
+        real_read_row = Signal.like(self.read.row)
+        real_write_row = Signal.like(self.write.row)
+        m.d.comb += real_read_row.eq((self.read.row + self.scroll_offset))
+        m.d.comb += real_write_row.eq((self.write.row + self.scroll_offset))
+
         if platform and platform.device == "iCE40UP5K":
             assert memsize <= 16384
             addr = Signal(14)
@@ -35,16 +41,17 @@ class GlyphBuffer(Elaboratable):
             with m.FSM():
                 with m.State("IDLE"):
                     with m.If(self.read.en):
-                        m.d.comb += addr.eq(Cat(self.read.row, self.read.col))
+                        m.d.comb += addr.eq(Cat(real_read_row, self.read.col))
                         m.next = "READ"
                     with m.Elif(self.write.en):
-                        m.d.comb += addr.eq(Cat(self.write.row, self.write.col))
+                        m.d.comb += addr.eq(Cat(real_write_row, self.write.col))
                         m.d.comb += mem_wren.eq(1)
                         m.d.comb += self.write.ack.eq(mem_wren)
                 with m.State("READ"):
-                    m.d.comb += addr.eq(Cat(self.read.row, self.read.col))
+                    m.d.comb += addr.eq(Cat(real_read_row, self.read.col))
                     m.d.sync += self.read.data.eq(mem_dataout)
                     m.next = "IDLE"
+
             m.submodules += Instance("SB_SPRAM256KA",
                 i_ADDRESS = addr,
                 i_DATAIN = self.write.data,
@@ -65,8 +72,8 @@ class GlyphBuffer(Elaboratable):
             addr = Signal.like(mem_rd.addr)
             m.d.comb += [
                 mem_rd.en.eq(self.read.en),
-                addr.eq(Mux(self.read.en, Cat(self.read.row, self.read.col),
-                                          Cat(self.write.row, self.write.col))),
+                addr.eq(Mux(self.read.en, Cat(real_read_row, self.read.col),
+                                          Cat(real_write_row, self.write.col))),
                 self.read.data.eq(mem_rd.data),
                 mem_wr.data.eq(self.write.data),
                 mem_rd.addr.eq(addr),
