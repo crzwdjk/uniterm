@@ -24,7 +24,7 @@ class RowFiller(Elaboratable):
             })),
             "start_fill": In(1),
             "char_row": In(range(timings.rows)),
-            "flash": Out(FlashReaderSig()),
+            "flash": Out(flashReaderSig()),
         }).freeze()
         self.__dict__.update(self.signature.members.create())
 

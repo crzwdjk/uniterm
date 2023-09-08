@@ -9,21 +9,20 @@ DUAL_IO_READ = 0xBB
 QUAD_IO_READ = 0xEB
 QUAD_OUTPUT_READ = 0x6B
 
-__all__ = ["FlashReaderSig", "FlashReader"]
+__all__ = ["flashReaderSig", "FlashReader"]
 
-class FlashReaderSig(Signature):
-    def __init__(self):
-        super().__init__({
-            "addr": Out(24),
-            "read_size": Out(16),
-            "read_trigger": Out(1),
-            "data": In(8),
-            "valid": In(1),
-        })
+def flashReaderSig():
+    return Signature({
+        "addr": Out(24),
+        "read_size": Out(16),
+        "read_trigger": Out(1),
+        "data": In(8),
+        "valid": In(1),
+    })
 
 class FlashReader(Component):
     COMMANDS = {1: READ_ARRAY, 2: DUAL_IO_READ, 4: QUAD_IO_READ}
-    signature = FlashReaderSig().flip()
+    signature = flashReaderSig().flip()
     def __init__(self, width=1):
         if width not in (1,2,4):
             raise Exception(f"invalid width {width}")

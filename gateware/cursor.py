@@ -3,27 +3,26 @@ from amaranth.lib.wiring import *
 import enum
 from signatures import *
 
-__all__ = ["CursorShape", "CursorControlsSig", "Cursor"]
+__all__ = ["CursorShape", "cursorControlsSig", "Cursor"]
 class CursorShape(enum.Enum):
     UNDERLINE = 1
     SOLID = 2
     VERTICAL = 3
     BOX = 4
 
-class CursorControlsSig(Signature):
-    def __init__(self, *, rows, cols):
-        return super().__init__({
-            "cursor_x": Out(range(cols)),
-            "cursor_y": Out(range(rows)),
-            "shape": Out(CursorShape),
-            "blink": Out(1, reset = 1),
-            "doublewide": Out(1),
-        })
+def cursorControlsSig(rows, cols):
+    return Signature({
+        "cursor_x": Out(range(cols)),
+        "cursor_y": Out(range(rows)),
+        "shape": Out(CursorShape),
+        "blink": Out(1, reset = 1),
+        "doublewide": Out(1),
+    })
 
 class Cursor(Elaboratable):
     def __init__(self, timings):
         self.signature = Signature({
-            "controls": In(CursorControlsSig(rows=timings.rows, cols=timings.cols)),
+            "controls": In(cursorControlsSig(rows=timings.rows, cols=timings.cols)),
             "pos": In(videoPosSig(timings)),
             "output": Out(1),
         })
