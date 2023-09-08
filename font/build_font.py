@@ -37,11 +37,15 @@ class Char():
         self.code = code
 
 def read_hex(chars, charset, infile):
+    ctr = 0
     for line in infile:
         (hexcode, data) = line.rstrip().split(":")
         charnum = int(hexcode, 16)
         if charnum in charset and charnum not in chars:
             chars[charnum] = Char(charnum, data)
+        ctr = ctr + 1
+        if ctr % 100 == 0:
+            print(ctr, end="\r")
 
 def write_blobs(chars, charset, *, singlefile, doublefile, charmapfile):
     single_idx = double_idx = emoji_idx = 0
