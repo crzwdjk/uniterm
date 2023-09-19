@@ -1,9 +1,10 @@
 from amaranth import *
 from amaranth.lib.wiring import *
-import glyphbuffer, icepll, rowfiller, videoout
+from amaranth.lib.fifo import SyncFIFO
+import bufserial, glyphbuffer, icepll, rowfiller, videoout
 from flashreader import *
-# XXX: test only
 from rowbuftest import *
+from termcore import *
 
 class Toplevel(Elaboratable):
     """ The top level of the terminal, everything goes under here. """
@@ -35,8 +36,6 @@ class Toplevel(Elaboratable):
         row_to_fill = Signal(range(self.timings.rows))
 
         m.submodules.glyphbuf = glyphbuf = glyphbuffer.GlyphBuffer(self.timings)
-        m.submodules.chargen = chargen = glyphbuffer.CharGen(self.timings)
-        connect(m, glyphbuf.write, chargen)
         connect(m, glyphbuf.read, rowfill.gbuf_rd)
 
         m.d.sync += [
@@ -51,5 +50,12 @@ class Toplevel(Elaboratable):
             rowbuf_write.data.eq(rowfill.rowbuf_wr.data),
             rowbuf_write.en.eq(rowfill.rowbuf_wr.en),
         ]
+
+        m.submodules.termcore = terminalcore = TerminalCore(self.timings)
+
+        freq = m.submodules.pll.params.f_out
+        m.submodules.serial = serialport = bufserial.BufSerial(divisor = int(freq // 115200))
+        connect(m, serialport.rx, terminalcore.serial_in)
+        connect(m, terminalcore.gbuf_write, glyphbuf.write)
 
         return m

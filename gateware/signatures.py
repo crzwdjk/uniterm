@@ -12,3 +12,10 @@ def memWriterSig(addrbits, databits):
         "en": Out(1),
         "data": Out(databits),
     })
+
+def streamSig(datashape):
+    return Signature({
+        "data": Out(datashape),
+        "rdy": Out(1),
+        "ack": In(1),
+    })
