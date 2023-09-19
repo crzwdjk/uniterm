@@ -75,7 +75,7 @@ def main():
     shutil.copy(flashmapfile, "build/flash_map.py")
     import toplevel
     pdata.platform.build(toplevel.Toplevel(pdata, timings),
-                         do_program=options.flash)
+                         do_program=options.flash, icepack_opts="-s")
 
 
 if __name__ == "__main__":
