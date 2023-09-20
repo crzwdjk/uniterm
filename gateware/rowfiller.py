@@ -29,8 +29,7 @@ class RowFiller(Elaboratable):
         self.__dict__.update(self.signature.members.create())
 
     def gen_addr(self, *, row, col):
-        return ((self.char_row[0] << 4) * self.rowbuf_chars +
-                col + row * self.rowbuf_chars)
+        return (((self.char_row[0] << 4) + row) * self.rowbuf_chars + col)
 
     def elaborate(self, platform):
         m = Module()
