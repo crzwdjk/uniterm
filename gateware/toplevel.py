@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 from amaranth.lib.fifo import SyncFIFO
-import bufserial, glyphbuffer, icepll, rowfiller, videoout
+import bufserial, flasharb, glyphbuffer, icepll, rowfiller, videoout
 from flashreader import *
 from rowbuftest import *
 from termcore import *
@@ -30,9 +30,7 @@ class Toplevel(Elaboratable):
             out.rowbuf_data.eq(rowbuf_read.data),
         ]
 
-        m.submodules.flashreader = flashrd = FlashReader(4)
         m.submodules.rowfiller = rowfill = rowfiller.RowFiller(self.timings)
-        connect(m, rowfill.flash, flashrd)
         row_to_fill = Signal(range(self.timings.rows))
 
         m.submodules.glyphbuf = glyphbuf = glyphbuffer.GlyphBuffer(self.timings)
@@ -58,5 +56,7 @@ class Toplevel(Elaboratable):
         connect(m, serialport.rx, terminalcore.serial_in)
         connect(m, terminalcore.gbuf_write, glyphbuf.write)
         connect(m, out.cursor, terminalcore.cursor)
+
+        m.submodules.flasharb = flasharb.FlashArbiter(rowfill.flash, terminalcore.flash)
 
         return m

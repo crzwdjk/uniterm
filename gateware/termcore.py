@@ -2,6 +2,8 @@ from amaranth import *
 from amaranth.lib.wiring import *
 from cursor import cursorControlsSig, CursorShape
 from signatures import *
+from flashreader import flashReaderSig
+from flasharb import arbClientSig
 
 class TerminalCore(Component):
     """
@@ -27,6 +29,7 @@ class TerminalCore(Component):
             "scroll_offset": Out(range(self.rows)),
             "serial_in": In(streamSig(8)),
             "cursor": Out(cursorControlsSig(rows=self.rows, cols=self.cols)),
+            "flash": Out(arbClientSig(flashReaderSig())),
         })
 
 
