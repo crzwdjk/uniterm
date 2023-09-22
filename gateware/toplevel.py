@@ -57,5 +57,6 @@ class Toplevel(Elaboratable):
         m.submodules.serial = serialport = bufserial.BufSerial(divisor = int(freq // 115200))
         connect(m, serialport.rx, terminalcore.serial_in)
         connect(m, terminalcore.gbuf_write, glyphbuf.write)
+        connect(m, out.cursor, terminalcore.cursor)
 
         return m

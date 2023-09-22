@@ -3,6 +3,7 @@ from amaranth.lib.wiring import *
 from signatures import *
 from cursor import *
 from vgasync import *
+from colorbuffer import BgFg, Color
 
 class VideoOut(Elaboratable):
     def __init__(self, timings):
@@ -13,6 +14,13 @@ class VideoOut(Elaboratable):
             "rowbuf_addr": Out(range(timings.cols * 16 * 2)),
             "rowbuf_en": Out(1),
             "rowbuf_data": In(8),
+            "cbuf": Out(Signature({
+                "row": In(range(timings.rows)),
+                "col": In(range(timings.cols)),
+                "en": In(1),
+                "bgfg": In(BgFg),
+                "data": Out(Color)
+            })),
         })
         self.__dict__.update(self.signature.members.create())
 
@@ -39,10 +47,8 @@ class VideoOut(Elaboratable):
 
         m.d.sync += active1.eq(vgs.active)
 
-        # create the cursor and override the shape for now.
         m.submodules.cursor = cursor = Cursor(self.timings)
-        connect(m, self.cursor, flipped(cursor.controls))
-        m.d.comb += cursor.controls.shape.eq(CursorShape.BOX)
+        connect(m, cursor.controls, flipped(self.cursor))
         cursorval = Signal()
         m.d.sync += cursorval.eq(cursor.output)
 

@@ -1,5 +1,6 @@
 from amaranth import *
 from amaranth.lib.wiring import *
+from cursor import cursorControlsSig, CursorShape
 from signatures import *
 
 class TerminalCore(Component):
@@ -24,17 +25,16 @@ class TerminalCore(Component):
                 "ack": In(1),
             })),
             "scroll_offset": Out(range(self.rows)),
-            "serial_in": In(streamSig(8))
+            "serial_in": In(streamSig(8)),
+            "cursor": Out(cursorControlsSig(rows=self.rows, cols=self.cols)),
         })
 
 
     def elaborate(self, platform):
         m = Module()
 
-        rowctr = Signal(range(self.rows))
-        colctr = Signal(range(self.cols))
-
         char = Signal(16)
+        m.d.comb += self.cursor.shape.eq(CursorShape.BOX)
 
         with m.FSM(reset="RESET"):
             with m.State("IDLE"):
@@ -46,35 +46,37 @@ class TerminalCore(Component):
             with m.State("PRINT"):
                 m.d.comb += [
                     self.gbuf_write.en.eq(1),
-                    self.gbuf_write.row.eq(rowctr),
-                    self.gbuf_write.col.eq(colctr),
+                    self.gbuf_write.row.eq(self.cursor.row),
+                    self.gbuf_write.col.eq(self.cursor.col),
                     self.gbuf_write.data.eq(char),
                 ]
                 with m.If(self.gbuf_write.ack):
-                    with m.If(colctr == self.cols - 1):
-                        with m.If(rowctr == self.rows - 1):
-                            m.d.sync += rowctr.eq(0)
+                    with m.If(self.cursor.col == self.cols - 1):
+                        with m.If(self.cursor.row == self.rows - 1):
+                            m.d.sync += self.cursor.row.eq(0)
                         with m.Else():
-                            m.d.sync += rowctr.eq(rowctr + 1)
-                        m.d.sync += colctr.eq(0)
+                            m.d.sync += self.cursor.row.eq(self.cursor.row + 1)
+                        m.d.sync += self.cursor.col.eq(0)
                     with m.Else():
-                        m.d.sync += colctr.eq(colctr + 1)
+                        m.d.sync += self.cursor.col.eq(self.cursor.col + 1)
                     m.next = "IDLE"
 
             with m.State("RESET"):
                 m.d.comb += self.gbuf_write.en.eq(1)
                 m.d.comb += self.gbuf_write.data.eq(0)
-                m.d.comb += self.gbuf_write.row.eq(rowctr)
-                m.d.comb += self.gbuf_write.col.eq(colctr)
+                m.d.comb += self.gbuf_write.row.eq(self.cursor.row)
+                m.d.comb += self.gbuf_write.col.eq(self.cursor.col)
                 with m.If(self.gbuf_write.ack):
-                    with m.If(colctr == self.cols - 1):
-                        with m.If(rowctr == self.rows - 1):
+                    with m.If(self.cursor.col == self.cols - 1):
+                        with m.If(self.cursor.row == self.rows - 1):
+                            m.d.sync += self.cursor.col.eq(0)
+                            m.d.sync += self.cursor.row.eq(0)
                             m.next = "IDLE"
                         with m.Else():
-                            m.d.sync += colctr.eq(0)
-                            m.d.sync += rowctr.eq(rowctr + 1)
+                            m.d.sync += self.cursor.col.eq(0)
+                            m.d.sync += self.cursor.row.eq(self.cursor.row + 1)
                     with m.Else():
-                        m.d.sync += colctr.eq(colctr + 1)
+                        m.d.sync += self.cursor.col.eq(self.cursor.col + 1)
 
 
         return m
