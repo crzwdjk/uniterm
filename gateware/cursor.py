@@ -12,8 +12,8 @@ class CursorShape(enum.Enum):
 
 def cursorControlsSig(rows, cols):
     return Signature({
-        "cursor_x": Out(range(cols)),
-        "cursor_y": Out(range(rows)),
+        "col": Out(range(cols)),
+        "row": Out(range(rows)),
         "shape": Out(CursorShape),
         "blink": Out(1, reset = 1),
         "doublewide": Out(1),
@@ -32,8 +32,8 @@ class Cursor(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        col = Signal.like(self.controls.cursor_x)
-        row = Signal.like(self.controls.cursor_y)
+        col = Signal.like(self.controls.col)
+        row = Signal.like(self.controls.row)
         ctr = Signal(32)
         cursor_on = Signal()
 
@@ -54,9 +54,9 @@ class Cursor(Elaboratable):
         m.d.comb += pre_output.eq(0)
 
         # Apply cursor style
-        cursor_left = (col == self.controls.cursor_x)
-        cursor_right = Mux(self.controls.doublewide, col == self.controls.cursor_x + 1, col == self.controls.cursor_x)
-        with m.If((cursor_left | cursor_right) & (row == self.controls.cursor_y)):
+        cursor_left = (col == self.controls.col)
+        cursor_right = Mux(self.controls.doublewide, col == self.controls.col + 1, col == self.controls.col)
+        with m.If((cursor_left | cursor_right) & (row == self.controls.row)):
             with m.Switch(self.controls.shape):
                 with m.Case(CursorShape.BOX):
                     m.d.comb += pre_output.eq(1)
