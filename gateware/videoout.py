@@ -79,9 +79,9 @@ class VideoOut(Elaboratable):
 
         # Not all platforms need the pclk/den outputs, so it's okay if the request fails.
         try:
-            pclk = platform.request("pclk")
+            pclk = platform.request("pclk").o
             m.d.comb += pclk.eq(ClockSignal("sync"))
-            den = platform.request("den")
+            den = platform.request("den").o
             m.d.sync += den.eq(vgs.active)
         except:
             pass

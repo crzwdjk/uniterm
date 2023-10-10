@@ -109,7 +109,7 @@ class ICEPLL(Elaboratable):
                 p_DIVQ = self.params.divq,
                 p_FILTER_RANGE = self.params.filter_range,
 
-                i_PACKAGEPIN = platform.request(self.inclk, dir="-"),
+                i_PACKAGEPIN = platform.request(self.inclk, dir="i").i,
                 i_BYPASS = Const(0),
                 i_RESETB = Const(1),
 
@@ -133,6 +133,5 @@ class ICEPLL(Elaboratable):
                 o_LOCK = lock,
             )
         m.submodules += ResetSynchronizer(~lock, domain = self.outdomain)
-        platform.add_clock_constraint(cd_sync.clk, self.params.f_out)
 
         return m
