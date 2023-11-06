@@ -81,7 +81,6 @@ CHARSETS_CORE = [
     block(0xa840, 0xa877),              # phags-pa
     block(0xa960, 0xa97c),              # hangul jamo extended A
     block(0xab30, 0xab6b),              # latin extended E
-    block(0xac00, 0xd7a3),              # hangul syllables
     block(0xd7b0, 0xd7bf) - block(0xd7c7, 0xd7ca), # hangul jamo extended B
     block(0xfb00, 0xfb06) | block(0xfb13, 0xfb17) | # alphabetic presentation forms
         block(0xfb1d, 0xfb4f) - {0xfb1e, 0xfb37, 0xfb3d, 0xfb3f, 0xfb42, 0xfb45},
@@ -106,6 +105,7 @@ CHARSETS_EXTENDED = [
     block(0x3200, 0x32ff) - {0x321f},   # enclosed CJK letters and months
     block(0x3400, 0x4dbf),              # CJK Unified ideographs extension A
     block(0x4e00, 0x9fff),              # CJK Unified ideographs
+    block(0xac00, 0xd7a3),              # hangul syllables
 ]
 
 CHARSETS_EMOJI = [
