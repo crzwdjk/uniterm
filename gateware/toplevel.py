@@ -1,9 +1,8 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 from amaranth.lib.fifo import SyncFIFO
-import bufserial, flasharb, glyphbuffer, icepll, rowfiller, videoout
+import bufserial, flasharb, glyphbuffer, icepll, rowbuftest, rowfiller, videoout
 from flashreader import *
-from rowbuftest import *
 from termcore import *
 
 class Toplevel(Elaboratable):
@@ -21,7 +20,9 @@ class Toplevel(Elaboratable):
 
         m.submodules.videoout = out = videoout.VideoOut(self.timings)
 
-        rowbuf = Memory(width = 8, depth = self.timings.cols * 16 * 2, init = ROWBUFTEST)
+        rowbuf = Memory(width = 8,
+                        depth = self.timings.cols * 16 * 2,
+                        init = rowbuftest.gen_testpattern(self.timings.cols))
         m.submodules.rowbuf_read = rowbuf_read = rowbuf.read_port(transparent = False)
         m.submodules.rowbuf_write = rowbuf_write = rowbuf.write_port()
         m.d.comb += [
