@@ -125,7 +125,7 @@ class ICEPLL(Elaboratable):
                 p_DIVQ = self.params.divq,
                 p_FILTER_RANGE = self.params.filter_range,
 
-                i_REFERENCECLK = platform.request(self.inclk),
+                i_REFERENCECLK = platform.request(self.inclk).i,
                 i_BYPASS = Const(0),
                 i_RESETB = Const(1),
 
