@@ -33,6 +33,7 @@ class GlyphBuffer(Elaboratable):
         real_write_row = Signal.like(self.write.row)
         m.d.comb += real_read_row.eq((self.read.row + self.scroll_offset))
         m.d.comb += real_write_row.eq((self.write.row + self.scroll_offset))
+        m.d.comb += self.read.data.eq(mem_dataout)
 
         if platform and platform.device == "iCE40UP5K":
             assert memsize <= 16384
@@ -49,7 +50,6 @@ class GlyphBuffer(Elaboratable):
                         m.d.comb += self.write.ack.eq(mem_wren)
                 with m.State("READ"):
                     m.d.comb += addr.eq(Cat(real_read_row, self.read.col))
-                    m.d.sync += self.read.data.eq(mem_dataout)
                     m.next = "IDLE"
 
             m.submodules += Instance("SB_SPRAM256KA",

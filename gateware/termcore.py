@@ -38,6 +38,10 @@ class TerminalCore(Component):
 
         char = Signal(16)
         m.d.comb += self.cursor.shape.eq(CursorShape.BOX)
+        m.d.comb += self.gbuf_write.en.eq(0)
+
+        m.d.comb += self.gbuf_write.row.eq(self.cursor.row)
+        m.d.comb += self.gbuf_write.col.eq(self.cursor.col)
 
         with m.FSM(reset="RESET"):
             with m.State("IDLE"):
@@ -49,8 +53,6 @@ class TerminalCore(Component):
             with m.State("PRINT"):
                 m.d.comb += [
                     self.gbuf_write.en.eq(1),
-                    self.gbuf_write.row.eq(self.cursor.row),
-                    self.gbuf_write.col.eq(self.cursor.col),
                     self.gbuf_write.data.eq(char),
                 ]
                 with m.If(self.gbuf_write.ack):
