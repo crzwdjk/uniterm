@@ -2,8 +2,6 @@ from amaranth import *
 from amaranth.lib.wiring import *
 from cursor import cursorControlsSig, CursorShape
 from signatures import *
-from flashreader import flashReaderSig
-from flasharb import arbClientSig
 
 class TerminalCore(Component):
     """
@@ -29,31 +27,42 @@ class TerminalCore(Component):
             "scroll_offset": Out(range(self.rows)),
             "serial_in": In(streamSig(8)),
             "cursor": Out(cursorControlsSig(rows=self.rows, cols=self.cols)),
-            "flash": Out(arbClientSig(flashReaderSig())),
+            "charmap": In(Signature({
+                "codepoint": In(21),
+                "glyphid": Out(16),
+                "en": In(1),
+                "valid": Out(1),
+            })),
         })
 
 
     def elaborate(self, platform):
         m = Module()
 
-        char = Signal(16)
         m.d.comb += self.cursor.shape.eq(CursorShape.BOX)
         m.d.comb += self.gbuf_write.en.eq(0)
 
         m.d.comb += self.gbuf_write.row.eq(self.cursor.row)
         m.d.comb += self.gbuf_write.col.eq(self.cursor.col)
 
+        glyphid = Signal(16)
         with m.FSM(reset="RESET"):
             with m.State("IDLE"):
                 with m.If(self.serial_in.rdy):
                     m.d.comb += self.serial_in.ack.eq(1)
-                    m.d.sync += char.eq(self.serial_in.data - 32)
+                    m.d.comb += self.charmap.en.eq(1)
+                    m.d.sync += self.charmap.codepoint.eq(self.serial_in.data)
+                    m.next = "CHARMAP_WAIT"
+
+            with m.State("CHARMAP_WAIT"):
+                with m.If(self.charmap.valid):
+                    m.d.sync += glyphid.eq(self.charmap.glyphid)
                     m.next = "PRINT"
 
             with m.State("PRINT"):
                 m.d.comb += [
                     self.gbuf_write.en.eq(1),
-                    self.gbuf_write.data.eq(char),
+                    self.gbuf_write.data.eq(glyphid),
                 ]
                 with m.If(self.gbuf_write.ack):
                     with m.If(self.cursor.col == self.cols - 1):
@@ -69,8 +78,6 @@ class TerminalCore(Component):
             with m.State("RESET"):
                 m.d.comb += self.gbuf_write.en.eq(1)
                 m.d.comb += self.gbuf_write.data.eq(0)
-                m.d.comb += self.gbuf_write.row.eq(self.cursor.row)
-                m.d.comb += self.gbuf_write.col.eq(self.cursor.col)
                 with m.If(self.gbuf_write.ack):
                     with m.If(self.cursor.col == self.cols - 1):
                         with m.If(self.cursor.row == self.rows - 1):
