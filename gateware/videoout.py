@@ -5,24 +5,27 @@ from cursor import *
 from vgasync import *
 from colorbuffer import BgFg, Color
 
-class VideoOut(Elaboratable):
+class VideoOut(Component):
     def __init__(self, timings):
         self.timings = timings
-        self.signature = Signature({
-            "pos": Out(videoPosSig(timings)),
-            "cursor": In(cursorControlsSig(rows=timings.rows, cols=timings.cols)),
-            "rowbuf_addr": Out(range(timings.cols * 16 * 2)),
+        super().__init__()
+
+    @property
+    def signature(self):
+        return Signature({
+            "pos": Out(videoPosSig(self.timings)),
+            "cursor": In(cursorControlsSig(rows=self.timings.rows, cols=self.timings.cols)),
+            "rowbuf_addr": Out(range(self.timings.cols * 16 * 2)),
             "rowbuf_en": Out(1),
             "rowbuf_data": In(8),
             "cbuf": Out(Signature({
-                "row": In(range(timings.rows)),
-                "col": In(range(timings.cols)),
+                "row": In(range(self.timings.rows)),
+                "col": In(range(self.timings.cols)),
                 "en": In(1),
                 "bgfg": In(BgFg),
                 "data": Out(Color)
             })),
         })
-        self.__dict__.update(self.signature.members.create())
 
     def elaborate(self, platform):
         m = Module()

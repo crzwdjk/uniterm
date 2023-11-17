@@ -4,7 +4,7 @@ from signatures import *
 
 __all__ = ["VGASync"]
 
-class VGASync(Elaboratable):
+class VGASync(Component):
     """
     VGA sync generator, with configurable timings.
 
@@ -13,14 +13,16 @@ class VGASync(Elaboratable):
     """
     def __init__(self, timings):
         self.timings = timings
+        super().__init__()
 
-        self.signature = Signature({
+    @property
+    def signature(self):
+        return Signature({
             "hs": Out(1),
             "vs": Out(1),
             "active": Out(1),
-            "pos": Out(videoPosSig(timings)),
-        }).freeze()
-        self.__dict__.update(self.signature.members.create())
+            "pos": Out(videoPosSig(self.timings)),
+        })
 
     def elaborate(self, platform):
         m = Module()

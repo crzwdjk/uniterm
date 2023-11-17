@@ -10,30 +10,33 @@ FONT1_MASK = 0x1ffff
 assert ((flash_map.FONT2_SIZE - 1) & flash_map.FONT2_OFFSET) == 0
 FONT2_MASK = 0x1fffff
 
-class RowFiller(Elaboratable):
+class RowFiller(Component):
     def __init__(self, timings):
-        self.rowbuf_chars = timings.cols
-        self.signature = Signature({
-            "rowbuf_wr": Out(memWriterSig(addrbits = range(timings.cols * 32), databits = 8)),
+        self.timings = timings
+        super().__init__()
+
+    @property
+    def signature(self):
+        return Signature({
+            "rowbuf_wr": Out(memWriterSig(addrbits = range(self.timings.cols * 32), databits = 8)),
             "gbuf_rd": Out(Signature({
-                "row": Out(range(timings.rows)),
-                "col": Out(range(timings.cols)),
+                "row": Out(range(self.timings.rows)),
+                "col": Out(range(self.timings.cols)),
                 "en": Out(1),
                 "data": In(16),
             })),
             "start_fill": In(1),
-            "char_row": In(range(timings.rows)),
+            "char_row": In(range(self.timings.rows)),
             "flash": Out(arbClientSig(flashReaderSig())),
-        }).freeze()
-        self.__dict__.update(self.signature.members.create())
-
+        })
+ 
     def gen_addr(self, *, row, col):
-        return (((self.char_row[0] << 4) + row) * self.rowbuf_chars + col)
+        return (((self.char_row[0] << 4) + row) * self.timings.cols + col)
 
     def elaborate(self, platform):
         m = Module()
 
-        charctr = Signal(range(self.rowbuf_chars))
+        charctr = Signal(range(self.timings.cols))
         rowctr = Signal(4)
         # convenience signal for the doublewide bit of the current char.
         chwidth = Signal()
@@ -76,7 +79,7 @@ class RowFiller(Elaboratable):
                 m.d.comb += self.rowbuf_wr.addr.eq(self.gen_addr(col=charctr, row=rowctr))
                 with m.If(self.flash.client.valid):
                     with m.If(rowctr == 15):
-                        with m.If(charctr == self.rowbuf_chars - 1):
+                        with m.If(charctr == self.timings.cols - 1):
                             m.d.sync += self.flash.request.eq(0)
                             m.next = "IDLE"
                         with m.Else():
@@ -90,10 +93,10 @@ class RowFiller(Elaboratable):
             with m.State("COPYW1"):
                 m.d.comb += self.rowbuf_wr.addr.eq(self.gen_addr(col=charctr, row=rowctr))
                 with m.If(self.flash.client.valid):
-                    with m.If((rowctr == 15) & (charctr == self.rowbuf_chars - 1)):
+                    with m.If((rowctr == 15) & (charctr == self.timings.cols - 1)):
                         m.d.sync += self.flash.request.eq(0)
                         m.next = "IDLE"
-                    with m.Elif(charctr == self.rowbuf_chars - 1):
+                    with m.Elif(charctr == self.timings.cols - 1):
                         m.d.sync += rowctr.eq(rowctr + 1)
                     with m.Else():
                         m.next = "COPYW2"
@@ -102,7 +105,7 @@ class RowFiller(Elaboratable):
                 m.d.comb += self.rowbuf_wr.addr.eq(self.gen_addr(col=charctr + 1, row=rowctr))
                 with m.If(self.flash.client.valid):
                     with m.If(rowctr == 15):
-                        with m.If(charctr == self.rowbuf_chars - 2):
+                        with m.If(charctr == self.timings.cols - 2):
                             m.d.sync += self.flash.request.eq(0)
                             m.next = "IDLE"
                         with m.Else():
