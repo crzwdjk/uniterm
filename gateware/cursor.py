@@ -19,22 +19,27 @@ def cursorControlsSig(rows, cols):
         "doublewide": Out(1),
     })
 
-class Cursor(Elaboratable):
+class Cursor(Component):
     def __init__(self, timings):
-        self.signature = Signature({
-            "controls": In(cursorControlsSig(rows=timings.rows, cols=timings.cols)),
-            "pos": In(videoPosSig(timings)),
+        self.timings = timings
+        super().__init__()
+
+    @property
+    def signature(self):
+        return Signature({
+            "controls": In(cursorControlsSig(rows=self.timings.rows, cols=self.timings.cols)),
+            "pos": In(videoPosSig(self.timings)),
             "output": Out(1),
         })
-        self.__dict__.update(self.signature.members.create())
-        self.blinkctrval = Const(int(timings.pclk * 1e6 * 0.5))
 
     def elaborate(self, platform):
         m = Module()
 
+        blinkctrval = Const(int(self.timings.pclk * 1e6 * 0.5))
+
         col = Signal.like(self.controls.col)
         row = Signal.like(self.controls.row)
-        ctr = Signal(32)
+        ctr = Signal(blinkctrval.shape())
         cursor_on = Signal()
 
         row_pix = self.pos.vctr[0:4]
@@ -43,7 +48,7 @@ class Cursor(Elaboratable):
         m.d.comb += row.eq(self.pos.vctr >> 4)
 
         # counter for the blink
-        with m.If(ctr == self.blinkctrval):
+        with m.If(ctr == blinkctrval):
             m.d.sync += ctr.eq(0)
             m.d.sync += cursor_on.eq(~cursor_on)
         with m.Else():
