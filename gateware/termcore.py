@@ -25,7 +25,7 @@ class TerminalCore(Component):
                 "ack": In(1),
             })),
             "scroll_offset": Out(range(self.rows)),
-            "serial_in": In(streamSig(8)),
+            "serial_in": In(streamSig(21)),
             "cursor": Out(cursorControlsSig(rows=self.rows, cols=self.cols)),
             "charmap": In(Signature({
                 "codepoint": In(21),

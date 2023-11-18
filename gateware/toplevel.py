@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 from amaranth.lib.fifo import SyncFIFO
-import bufserial, charmap, flasharb, glyphbuffer, icepll, rowbuftest, rowfiller, videoout
+import bufserial, charmap, flasharb, glyphbuffer, icepll, rowbuftest, rowfiller, videoout, utf8
 from flashreader import *
 from termcore import *
 
@@ -55,7 +55,10 @@ class Toplevel(Elaboratable):
 
         freq = m.submodules.pll.params.f_out
         m.submodules.serial = serialport = bufserial.BufSerial(divisor = int(freq // 115200))
-        connect(m, serialport.rx, terminalcore.serial_in)
+        m.submodules.utf8 = utf8decode = utf8.UTF8Decoder()
+        connect(m, serialport.rx, utf8decode.inp)
+
+        connect(m, utf8decode.out, terminalcore.serial_in)
         connect(m, terminalcore.gbuf_write, glyphbuf.write)
         connect(m, chmap.ctrl, terminalcore.charmap)
         connect(m, out.cursor, terminalcore.cursor)
