@@ -18,19 +18,21 @@ class FlashArbiter(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.flashmod = flashmod = self._flashmod
+        fmreset = Signal(reset=1)
+        m.submodules.flashmod = flashmod = ResetInserter(fmreset)(self._flashmod)
         for c in self.clients:
             m.d.comb += c.ok.eq(0)
 
         with m.FSM():
             with m.State("IDLE"):
-                for i, c in enumerate(self.clients):
+                for i, c in reversed(list(enumerate(self.clients))):
                     with m.If(c.request):
                         m.next = "CLIENT" + str(i)
 
             for i, c in enumerate(self.clients):
                 with m.State("CLIENT" + str(i)):
                     m.d.comb += c.ok.eq(1)
+                    m.d.comb += fmreset.eq(0)
                     connect(m, c.client, flashmod)
                     with m.If(~c.request):
                         m.next = "IDLE"

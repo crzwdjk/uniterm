@@ -44,6 +44,7 @@ class TerminalCore(Component):
 
         m.d.comb += self.gbuf_write.row.eq(self.cursor.row)
         m.d.comb += self.gbuf_write.col.eq(self.cursor.col)
+        m.d.comb += self.gbuf_write.data.eq(self.charmap.glyphid)
 
         glyphid = Signal(16)
         with m.FSM(reset="RESET"):
@@ -56,14 +57,10 @@ class TerminalCore(Component):
 
             with m.State("CHARMAP_WAIT"):
                 with m.If(self.charmap.valid):
-                    m.d.sync += glyphid.eq(self.charmap.glyphid)
                     m.next = "PRINT"
 
             with m.State("PRINT"):
-                m.d.comb += [
-                    self.gbuf_write.en.eq(1),
-                    self.gbuf_write.data.eq(glyphid),
-                ]
+                m.d.comb += self.gbuf_write.en.eq(1)
                 with m.If(self.gbuf_write.ack):
                     with m.If(self.cursor.col == self.cols - 1):
                         with m.If(self.cursor.row == self.rows - 1):
