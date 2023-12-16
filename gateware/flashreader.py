@@ -22,12 +22,11 @@ def flashReaderSig():
 
 class FlashReader(Component):
     COMMANDS = {1: READ_ARRAY, 2: DUAL_IO_READ, 4: QUAD_IO_READ}
-    signature = flashReaderSig().flip()
     def __init__(self, width=1):
         if width not in (1,2,4):
             raise Exception(f"invalid width {width}")
         self.width = width
-        super().__init__()
+        super().__init__(flashReaderSig().flip())
         # how to use: set read_trigger to 1 and addr to desired address.
         # once the SPI starts talking, read data_out when valid is high
         # and it will clock out

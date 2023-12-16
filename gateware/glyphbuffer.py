@@ -1,10 +1,10 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 
-class GlyphBuffer(Elaboratable):
+class GlyphBuffer(Component):
     def __init__(self, timings):
         self.timings = timings
-        self.signature = Signature({
+        super().__init__({
             "read": Out(Signature({
                 "row": In(range(timings.rows)),
                 "col": In(range(timings.cols)),
@@ -20,7 +20,6 @@ class GlyphBuffer(Elaboratable):
             })),
             "scroll_offset": In(range(timings.cols)),
         })
-        self.__dict__.update(self.signature.members.create())
 
     def elaborate(self, platform):
         m = Module()
@@ -41,6 +40,7 @@ class GlyphBuffer(Elaboratable):
             mem_wren = Signal(reset = 0)
             with m.FSM():
                 with m.State("IDLE"):
+#            if True:
                     with m.If(self.read.en):
                         m.d.comb += addr.eq(Cat(real_read_row, self.read.col))
                         m.next = "READ"

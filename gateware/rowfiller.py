@@ -13,11 +13,7 @@ FONT2_MASK = 0x1fffff
 class RowFiller(Component):
     def __init__(self, timings):
         self.timings = timings
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "rowbuf_wr": Out(memWriterSig(addrbits = range(self.timings.cols * 32), databits = 8)),
             "gbuf_rd": Out(Signature({
                 "row": Out(range(self.timings.rows)),

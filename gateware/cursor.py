@@ -22,11 +22,7 @@ def cursorControlsSig(rows, cols):
 class Cursor(Component):
     def __init__(self, timings):
         self.timings = timings
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "controls": In(cursorControlsSig(rows=self.timings.rows, cols=self.timings.cols)),
             "pos": In(videoPosSig(self.timings)),
             "output": Out(1),

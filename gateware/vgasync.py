@@ -13,11 +13,7 @@ class VGASync(Component):
     """
     def __init__(self, timings):
         self.timings = timings
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "hs": Out(1),
             "vs": Out(1),
             "active": Out(1),

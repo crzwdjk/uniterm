@@ -8,11 +8,7 @@ from colorbuffer import BgFg, Color
 class VideoOut(Component):
     def __init__(self, timings):
         self.timings = timings
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "pos": Out(videoPosSig(self.timings)),
             "cursor": In(cursorControlsSig(rows=self.timings.rows, cols=self.timings.cols)),
             "rowbuf_addr": Out(range(self.timings.cols * 16 * 2)),

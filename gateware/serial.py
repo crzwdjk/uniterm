@@ -89,11 +89,7 @@ class AsyncSerialRX(Component):
 
         self._pins = pins
 
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "data": Out(self._data_bits),
             "rdy": Out(1),
             "ack": In(1),
@@ -192,11 +188,7 @@ class AsyncSerialTX(Component):
 
         self._pins = pins
 
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "data": In(self._data_bits),
             "rdy":  In(1),
             "ack":  Out(1),

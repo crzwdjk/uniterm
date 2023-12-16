@@ -12,11 +12,7 @@ class TerminalCore(Component):
     def __init__(self, timings):
         self.rows = timings.rows
         self.cols = timings.cols
-        super().__init__()
-
-    @property
-    def signature(self):
-        return Signature({
+        super().__init__({
             "gbuf_write": Out(Signature({
                 "row": Out(range(self.rows)),
                 "col": Out(range(self.cols)),
